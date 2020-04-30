@@ -8,7 +8,7 @@ mainMeat = "chicken"
 mainVeg = "broccoli"
 
 #--sets the seed for random start of 1st recipe to match--#
-#start = random.randint(0,MaxAPIResults - 1)
+#start = random.randint(0,MaxAPIResults)
 start = 0
 
 measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bags','quarts','pounds','cans','bottles',
@@ -38,6 +38,7 @@ def transformToCups(amount, unit):
 
 rawKeyIngredients = []
 keyIngredients = []
+ranks = []
 
 #--This block gets API key from PRIVATE file--#
 API_file = open(filenameOfAPI_Key,'r')
@@ -69,26 +70,49 @@ for item in range(0, len(ingred)):
 		x+=1
 
 #--Put key ingredients in list to parse recipes for matches--#
-for each in rawKeyIngredients:
+for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient, amount, chopped/canned, etc
+	temp = each.lower()		#convert to lowercase for easier matching with allIngredients.txt
 	f1 = open("allIngredients.txt")
-	temp = each.lower()
-	print(temp)
 	tempWord = ""
-	for line in f1:
-		if (temp.find(line[:-1].lower()) > -1):
-			if (len(line[:-1].lower()) > len(tempWord)):
+	for line in f1:		#Go through each line of allIngredients.txt
+		if (temp.find(line[:-1].lower()) > -1):		#if any string from temp is found in allIngredients.txt - newline character
+			if (len(line[:-1].lower()) > len(tempWord)):		#update longest word. Ideally, the longest match is the most specific ingredient
 				tempWord = line[:-1].lower()
-	if(not any(item in tempWord for item in keyIngredients)):
+	if(len(tempWord) == 0):		#If ingredient is not found in known ingredients in allIngredients.txt file
+		print("***************" + temp + " -> Not found in allIngredients.txt. Please add.***************")
+		tempWord = temp
+	if(not any(item in tempWord for item in keyIngredients)):	#If ingredient not repeated in the recipe's list, add to list of recipes to match for ranking
 		keyIngredients.append(tempWord)
+f1.close()
+
+x = 0
+for y in range(0, MaxAPIResults):		#for each recipe in returned results from API search
+	tempIngred = []
+	ingredi = data["hits"][y]["recipe"]["ingredients"]		#temp dictionary for extracting recipe ingredients
+	for item in range(0, len(ingredi)):
+		for key,value in ingredi[item].items():
+			if(x % 2 == 0):
+				tempIngred.append(value.lower())
+			x+=1
+
+	rank = 0
+	for each in tempIngred:		#for each dictionary of extracted recipe ingredient list
+		match = False
+		for item in keyIngredients:
+			if (each.find(item) > -1):
+				match = True
+		if(match):
+			rank += 1
+
+#for x in keyIngredients:
+#	print(x)
 
 
-	#open allIngredients.txt and save to a list
-	#use find for each line (ing) in allIngredients.txt, find in keyIngredients
-	#if the above is true, replace string at keyIngredients at index each with (ing)
-	#use find command
-for x in keyIngredients:
+	ranks.append((rank/len(tempIngred)) * 100)
+for x in ranks:
 	print(x)
-#	print(each)
+##ranks currently contains raw rank of all returned API recipes
+
 
 #keyIngredients now contains ingredients to match with other recipes
 #now go through all recipes iningred and rank them by amount of matching ingredients compared to total ingredients by using find again
