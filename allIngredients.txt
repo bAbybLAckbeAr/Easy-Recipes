@@ -86,6 +86,7 @@ Chambord
 Chardonnay wine
 Cheddar Monterey Jack cheese blend
 Cheddar Monterey cheese blend
+cheddar
 Cheddar cheese
 Cheddar flavored soy cheese
 Cheddar or Colby Jack cheese
@@ -360,6 +361,7 @@ Oriental flavored ramen noodles
 Original Bisquick� mix
 PEANUT SAUCE
 Parma ham
+Parmesan
 Parmesan cheese
 Parmesan cheese flavored bread
 Parmesan flavor soy cheese
@@ -421,6 +423,7 @@ Semi sweet real chocolate chips
 Seven Minute Frosting
 Shaved chocolate to garnish
 Shredded Chicken Filling
+Shredded cheddar
 Sliced almonds
 Sliced green onions
 Sour cream
@@ -1098,6 +1101,7 @@ center pork chops
 chai tea
 champagne
 chard
+cheese
 cheese curds
 cheese filled tortellini
 cheese flavored butter crackers
@@ -1634,6 +1638,7 @@ ears corn kernels
 ears corn kernels from the cob
 ears sweet corn off the cob
 edible carnations
+egg
 egg bread
 egg bread crust
 egg custard mix
@@ -1750,6 +1755,7 @@ flax seeds
 flaxseed oil
 flounder
 flounder fillets
+flour
 flour tortillas
 fluffy white frosting mix
 focaccia bread
@@ -3511,9 +3517,8 @@ sesame oil
 sesame seeds
 seven grain cereal
 seven minute frosting
-shallots
-shallots lengthwise
-shallots thinly
+shallot
+shallot
 shaped spearmint gumdrops
 shark fillets
 sharp Cheddar cheese

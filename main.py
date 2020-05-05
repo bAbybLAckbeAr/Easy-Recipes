@@ -6,15 +6,19 @@ MaxAPIResults = 100 #Determined by subscribed tier
 filenameOfAPI_Key = "API_Key"
 mainMeat = "chicken"
 mainVeg = "broccoli"
+mealsToMake = 5
 
 #--sets the seed for random start of 1st recipe to match--#
-#start = random.randint(0,MaxAPIResults)
+#start = random.randint(0,MaxAPIResults-1)
 start = 0
 
 measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bags','quarts','pounds','cans','bottles',
 		'pints','packages','ounces','jars','heads','gallons','drops','bars','boxes','pinches',
 		'bunches','layers','slices','links','bulbs','stalks','squares','sprigs', 'oz',
 		'fillets','pieces','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
+cuisineType = ['American', 'Asian', 'British', 'Caribbean', 'Central Europe', 'Chinese', 'French', 'Italian',
+		'Japanese', 'Mediterranean', 'Mexican', 'South American', 'South East Asian'] #Cuisine types taken from EDAMAM documentation
+
 
 #--transform liquid measurements to cups--#
 #-amount is parsed amount. unit is parsed unit-#
@@ -38,14 +42,23 @@ def transformToCups(amount, unit):
 
 rawKeyIngredients = []
 keyIngredients = []
-ranks = []
+#ranks = []
+#keptRanks1 = []
+#keptRanks2 = []
+#keptRanks3 = []
+#keptRanks4 = []
+#keptRanks5 = []
+chosenCuisine = []
+for m in range(0,mealsToMake - 1):
+	chosenCuisine.append(cuisineType[random.randint(0,len(cuisineType)-1)])
 
 #--This block gets API key from PRIVATE file--#
 API_file = open(filenameOfAPI_Key,'r')
 API_ID = API_file.readline()[:-1]
 API_Key = API_file.readline()[:-1]
 API_file.close()
-#r = requests.get('https://api.edamam.com/search?q=' + mainVeg + ',' + mainMeat + '&app_id=' + API_ID + '&app_key=' + API_Key + '&from=0&to=100')
+
+#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to=100&cuisineType='+'Asian')
 #data = r.json()
 
 ##--use this til final run--##
@@ -85,35 +98,50 @@ for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient,
 		keyIngredients.append(tempWord)
 f1.close()
 
-x = 0
-for y in range(0, MaxAPIResults):		#for each recipe in returned results from API search
-	tempIngred = []
-	ingredi = data["hits"][y]["recipe"]["ingredients"]		#temp dictionary for extracting recipe ingredients
+#for x in rawKeyIngredients:
+#	print(x)
+
+def getRecipe():
+	#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to=100&cuisineType='+'Asian')
+	#data = r.json()
+	ranks = []
+	keptRanks1 = []
+	x = 0
+	for y in range(0, MaxAPIResults):		#for each recipe in returned results from API search
+		tempIngred = []
+		ingredi = data["hits"][y]["recipe"]["ingredients"]		#temp dictionary for extracting recipe ingredients
+		for item in range(0, len(ingredi)):
+			for key,value in ingredi[item].items():
+				if(x % 2 == 0):
+					tempIngred.append(value.lower())
+				x+=1
+
+		rank = 0
+		for each in tempIngred:		#for each dictionary of extracted recipe ingredient list
+			match = False
+			for item in keyIngredients:
+				if (each.find(item) > -1):
+					match = True
+			if(match):
+				rank += 1
+		ranks.append((rank/len(tempIngred)) * 100)
+
+	for k in range(0,5):
+		keptRanks1.append(ranks.index(max(ranks)))
+		del ranks[ranks.index(max(ranks))] #removes highest rank to get new highest next time
+	x = random.randint(0,len(keptRanks1) - 1)
+	ingredi = data["hits"][x]["recipe"]["ingredients"]
+	url = data["hits"][x]["recipe"]["url"]
+
+	formatIngredients = []
+	x = 0
 	for item in range(0, len(ingredi)):
 		for key,value in ingredi[item].items():
 			if(x % 2 == 0):
-				tempIngred.append(value.lower())
+				formatIngredients.append(value.lower())
 			x+=1
+	for x in formatIngredients:
+		print(x)
+	#formatIngredients has list of formatted ingredients for the randomly chosen recipe that has a high rank
+getRecipe()
 
-	rank = 0
-	for each in tempIngred:		#for each dictionary of extracted recipe ingredient list
-		match = False
-		for item in keyIngredients:
-			if (each.find(item) > -1):
-				match = True
-		if(match):
-			rank += 1
-
-#for x in keyIngredients:
-#	print(x)
-
-
-	ranks.append((rank/len(tempIngred)) * 100)
-for x in ranks:
-	print(x)
-##ranks currently contains raw rank of all returned API recipes
-
-
-#keyIngredients now contains ingredients to match with other recipes
-#now go through all recipes iningred and rank them by amount of matching ingredients compared to total ingredients by using find again
-#if a recipe is chicken and oil and that's it. score a higher rank than a recipe that has chicken, oil, salt, pepper, oregano, carrrots, mahogny, etc
