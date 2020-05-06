@@ -16,6 +16,7 @@ measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bag
 		'pints','packages','ounces','jars','heads','gallons','drops','bars','boxes','pinches',
 		'bunches','layers','slices','links','bulbs','stalks','squares','sprigs', 'oz',
 		'fillets','pieces','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
+
 cuisineType = ['American', 'Asian', 'British', 'Caribbean', 'Central Europe', 'Chinese', 'French', 'Italian',
 		'Japanese', 'Mediterranean', 'Mexican', 'South American', 'South East Asian'] #Cuisine types taken from EDAMAM documentation
 
@@ -42,12 +43,6 @@ def transformToCups(amount, unit):
 
 rawKeyIngredients = []
 keyIngredients = []
-#ranks = []
-#keptRanks1 = []
-#keptRanks2 = []
-#keptRanks3 = []
-#keptRanks4 = []
-#keptRanks5 = []
 chosenCuisine = []
 for m in range(0,mealsToMake - 1):
 	chosenCuisine.append(cuisineType[random.randint(0,len(cuisineType)-1)])
@@ -58,7 +53,7 @@ API_ID = API_file.readline()[:-1]
 API_Key = API_file.readline()[:-1]
 API_file.close()
 
-#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to=100&cuisineType='+'Asian')
+#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to="+MaxAPIResults+"&cuisineType='+'Asian')
 #data = r.json()
 
 ##--use this til final run--##
@@ -66,19 +61,17 @@ API_file.close()
 with open("this.json") as f:
 	data = json.load(f)
 
-#--ingred is list of raw ingredients ie 1/2 teaspoon of canola oil for recipe to start--#
+#--ingred is list of raw ingredients (ie 1/2 teaspoon of canola oil for recipe) to start--#
 ingred = data["hits"][start]["recipe"]["ingredients"]
 
-#--prints URL of recipe denoted by start--#
+#--saves URL of recipe denoted by start--#
 url = data["hits"][start]["recipe"]["url"]
-print(url)
 
-##---This block prints ingredients in amounts---##
+##---This block extracts ingredients in amounts from dictionary---##
 x = 0
 for item in range(0, len(ingred)):
 	for key,value in ingred[item].items():
 		if(x % 2 == 0):
-			#print(value)
 			rawKeyIngredients.append(value)
 		x+=1
 
@@ -98,10 +91,22 @@ for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient,
 		keyIngredients.append(tempWord)
 f1.close()
 
-#for x in rawKeyIngredients:
-#	print(x)
+shopList = open("shoppingList.txt", "w")
+shopList.writelines(url+"\n")
+shopList.close()
+recipe1 = open("recipe1.txt", "w")
+recipe1.writelines(url+"\n")
+recipe1.close()
 
-def getRecipe():
+recipe1 = open("recipe1.txt", "a")
+shopList = open("shoppingList.txt", "a")
+for x in rawKeyIngredients:
+	shopList.write(x+"\n")
+	recipe1.write(x+"\n")
+shopList.close()
+recipe1.close()
+
+def getRecipe(number):
 	#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to=100&cuisineType='+'Asian')
 	#data = r.json()
 	ranks = []
@@ -140,8 +145,22 @@ def getRecipe():
 			if(x % 2 == 0):
 				formatIngredients.append(value.lower())
 			x+=1
+	shopList = open("shoppingList.txt", "a")
+	recipeNumber = "recipe"+str(number+1)+".txt"
+	recipe = open(recipeNumber, "w")
+	recipe.writelines(url)
+	shopList.write("\n"+url+"\n")
+	recipe.close()
+	recipe = open(recipeNumber, "a")
 	for x in formatIngredients:
-		print(x)
+		shopList.write(x+"\n")
+		recipe.write(x+"\n")
+	recipe.close()
+	shopList.close()
 	#formatIngredients has list of formatted ingredients for the randomly chosen recipe that has a high rank
-getRecipe()
+	#f1 = open("file.txt", "a") WILL APPEND TO THE FILE. CREATES FILE IF NOT FOUND
+	#f1 = open("file.txt", "w") WILL OVERWRITE WHATEVER IS ALREADY IN THE FILE
+
+for h in range(1,len(chosenCuisine) + 1):
+	getRecipe(h)
 
