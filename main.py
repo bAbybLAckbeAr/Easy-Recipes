@@ -1,6 +1,7 @@
 import requests
 import json
 import random
+import enum
 
 MaxAPIResults = 100 #Determined by subscribed tier
 filenameOfAPI_Key = "API_Key"
@@ -9,17 +10,22 @@ mainVeg = "broccoli"
 mealsToMake = 5
 
 #--sets the seed for random start of 1st recipe to match--#
-#start = random.randint(0,MaxAPIResults-1)
-start = 0
+start = random.randint(0,MaxAPIResults-1)
+#start = 0
 
 measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bags','quarts','pounds','cans','bottles',
 		'pints','packages','ounces','jars','heads','gallons','drops','bars','boxes','pinches',
-		'bunches','layers','slices','links','bulbs','stalks','squares','sprigs', 'oz',
-		'fillets','pieces','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
+		'bunches','layers','links','bulbs','stalks','squares','sprigs', 'oz', 'cloves'
+		'fillets','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
 
-cuisineType = ['American', 'Asian', 'British', 'Caribbean', 'Central Europe', 'Chinese', 'French', 'Italian',
-		'Japanese', 'Mediterranean', 'Mexican', 'South American', 'South East Asian'] #Cuisine types taken from EDAMAM documentation
+cuisineType = ['alfredo','barbecue', 'cheese', 'garlic', 'mexican']
 
+def isFloat(string):
+    try:
+        float(string)
+        return True
+    except:
+        return False
 
 #--transform liquid measurements to cups--#
 #-amount is parsed amount. unit is parsed unit-#
@@ -53,7 +59,7 @@ API_ID = API_file.readline()[:-1]
 API_Key = API_file.readline()[:-1]
 API_file.close()
 
-#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to="+MaxAPIResults+"&cuisineType='+'Asian')
+#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
 #data = r.json()
 
 ##--use this til final run--##
@@ -72,12 +78,21 @@ x = 0
 for item in range(0, len(ingred)):
 	for key,value in ingred[item].items():
 		if(x % 2 == 0):
-			rawKeyIngredients.append(value)
+			if(not any(item in value for item in rawKeyIngredients)):	#If ingredient not repeated in the recipe's list, add to list of ingredients to match for ranking
+				rawKeyIngredients.append(value)
 		x+=1
-
 #--Put key ingredients in list to parse recipes for matches--#
 for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient, amount, chopped/canned, etc
 	temp = each.lower()		#convert to lowercase for easier matching with allIngredients.txt
+	for something in each.split():
+		if(isFloat(something)):
+			print(something)
+		if(something.find("/") > -1):
+			print(something)
+		for each in measurementUnits:
+			if (each.find(something) > -1):
+				print(each+"****\n")
+
 	f1 = open("allIngredients.txt")
 	tempWord = ""
 	for line in f1:		#Go through each line of allIngredients.txt
@@ -106,15 +121,15 @@ for x in rawKeyIngredients:
 shopList.close()
 recipe1.close()
 
-def getRecipe(number):
-	#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to=100&cuisineType='+'Asian')
-	#data = r.json()
+def getRecipe(number, cuisine):
+	r2 = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+','+cuisine+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
+	data2 = r2.json()
 	ranks = []
 	keptRanks1 = []
 	x = 0
-	for y in range(0, MaxAPIResults):		#for each recipe in returned results from API search
+	for y in range(0, len(data2["hits"]) - 1): #MaxAPIResults):		#for each recipe in returned results from API search
 		tempIngred = []
-		ingredi = data["hits"][y]["recipe"]["ingredients"]		#temp dictionary for extracting recipe ingredients
+		ingredi = data2["hits"][y]["recipe"]["ingredients"]		#temp dictionary for extracting recipe ingredients
 		for item in range(0, len(ingredi)):
 			for key,value in ingredi[item].items():
 				if(x % 2 == 0):
@@ -134,21 +149,24 @@ def getRecipe(number):
 	for k in range(0,5):
 		keptRanks1.append(ranks.index(max(ranks)))
 		del ranks[ranks.index(max(ranks))] #removes highest rank to get new highest next time
-	x = random.randint(0,len(keptRanks1) - 1)
-	ingredi = data["hits"][x]["recipe"]["ingredients"]
-	url = data["hits"][x]["recipe"]["url"]
+
+#check here if the recipe that gets selected has alread been selected somehow
+	x = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
+	ingredi = data2["hits"][x]["recipe"]["ingredients"]
+	url = data2["hits"][x]["recipe"]["url"]
 
 	formatIngredients = []
 	x = 0
 	for item in range(0, len(ingredi)):
 		for key,value in ingredi[item].items():
 			if(x % 2 == 0):
-				formatIngredients.append(value.lower())
+				if(not any(item in value.lower() for item in formatIngredients)):
+					formatIngredients.append(value.lower())
 			x+=1
 	shopList = open("shoppingList.txt", "a")
 	recipeNumber = "recipe"+str(number+1)+".txt"
 	recipe = open(recipeNumber, "w")
-	recipe.writelines(url)
+	recipe.writelines(url+"\n")
 	shopList.write("\n"+url+"\n")
 	recipe.close()
 	recipe = open(recipeNumber, "a")
@@ -162,5 +180,4 @@ def getRecipe(number):
 	#f1 = open("file.txt", "w") WILL OVERWRITE WHATEVER IS ALREADY IN THE FILE
 
 for h in range(1,len(chosenCuisine) + 1):
-	getRecipe(h)
-
+	getRecipe(h, chosenCuisine[h-1])
