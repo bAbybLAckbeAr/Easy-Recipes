@@ -10,15 +10,16 @@ mainVeg = "broccoli"
 mealsToMake = 5
 
 #--sets the seed for random start of 1st recipe to match--#
-start = random.randint(0,MaxAPIResults-1)
-#start = 0
+#start = random.randint(0,MaxAPIResults-1)
+start = 0
 
 measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bags','quarts','pounds','cans','bottles',
 		'pints','packages','ounces','jars','heads','gallons','drops','bars','boxes','pinches',
 		'bunches','layers','links','bulbs','stalks','squares','sprigs', 'oz', 'cloves'
 		'fillets','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
 
-cuisineType = ['alfredo','barbecue', 'cheese', 'garlic', 'mexican']
+cuisineType = ['alfredo','barbecue,sauce', 'cheese', 'garlic', 'mexican', 'lemon','potato','bacon','mustard','ketchup','macaroni',
+		'brown,sugar','','','','','','','','','','','','','','']
 
 def isFloat(string):
     try:
@@ -27,31 +28,14 @@ def isFloat(string):
     except:
         return False
 
-#--transform liquid measurements to cups--#
-#-amount is parsed amount. unit is parsed unit-#
-def transformToCups(amount, unit):
-	if unit == "cups":
-		return amount
-	elif unit == "quarts":
-		return amount / 16
-	elif unit == "quarts":
-		return amount / 4
-	elif unit == "pints":
-		return amount / 2
-	elif unit == "ounces":
-		return amount * 8
-	elif unit == "tablespoons":
-		return amount * 16
-	elif unit == "teaspoons":
-		return amount * 48
-	else:
-		return amount
-
 rawKeyIngredients = []
 keyIngredients = []
 chosenCuisine = []
-for m in range(0,mealsToMake - 1):
-	chosenCuisine.append(cuisineType[random.randint(0,len(cuisineType)-1)])
+for m in range(0,mealsToMake - 1): #put this whole block in getRecipe function, append to chosenCuisine
+	temp = cuisineType[random.randint(0,len(cuisineType)-1)]
+	while(temp in chosenCuisine):
+		temp = cuisineType[random.randint(0,len(cuisineType)-1)]
+	chosenCuisine.append(temp)
 
 #--This block gets API key from PRIVATE file--#
 API_file = open(filenameOfAPI_Key,'r')
@@ -127,6 +111,8 @@ def getRecipe(number, cuisine):
 	ranks = []
 	keptRanks1 = []
 	x = 0
+	if(len(data2["hits"]) < 1):
+		return
 	for y in range(0, len(data2["hits"]) - 1): #MaxAPIResults):		#for each recipe in returned results from API search
 		tempIngred = []
 		ingredi = data2["hits"][y]["recipe"]["ingredients"]		#temp dictionary for extracting recipe ingredients
@@ -147,8 +133,11 @@ def getRecipe(number, cuisine):
 		ranks.append((rank/len(tempIngred)) * 100)
 
 	for k in range(0,5):
-		keptRanks1.append(ranks.index(max(ranks)))
-		del ranks[ranks.index(max(ranks))] #removes highest rank to get new highest next time
+		try:
+			keptRanks1.append(ranks.index(max(ranks)))
+			del ranks[ranks.index(max(ranks))] #removes highest rank to get new highest next time
+		except:
+			x = 0
 
 #check here if the recipe that gets selected has alread been selected somehow
 	x = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
@@ -179,5 +168,5 @@ def getRecipe(number, cuisine):
 	#f1 = open("file.txt", "a") WILL APPEND TO THE FILE. CREATES FILE IF NOT FOUND
 	#f1 = open("file.txt", "w") WILL OVERWRITE WHATEVER IS ALREADY IN THE FILE
 
-for h in range(1,len(chosenCuisine) + 1):
+for h in range(1, mealsToMake):
 	getRecipe(h, chosenCuisine[h-1])
