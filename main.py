@@ -8,34 +8,34 @@ filenameOfAPI_Key = "API_Key"
 mainMeat = "chicken"
 mainVeg = "broccoli"
 mealsToMake = 5
+similarityThreshold = 5 #The higher the number, the less likely the recipes are to being similar. 2 is minimum
 
 #--sets the seed for random start of 1st recipe to match--#
-#start = random.randint(0,MaxAPIResults-1)
-start = 0
+start = random.randint(0,MaxAPIResults-1)
+#start = 0
 
 measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bags','quarts','pounds','cans','bottles',
 		'pints','packages','ounces','jars','heads','gallons','drops','bars','boxes','pinches',
 		'bunches','layers','links','bulbs','stalks','squares','sprigs', 'oz', 'cloves'
 		'fillets','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
 
-cuisineType = ['alfredo','barbecue,sauce', 'cheese', 'garlic', 'mexican', 'lemon','potato','bacon','mustard','ketchup','macaroni',
-		'brown,sugar','','','','','','','','','','','','','','']
+chickenIngred = ['alfredo','barbecue,sauce', 'cheese', 'garlic', 'mexican', 'lemon','potato','bacon','mustard','ketchup','macaroni',
+		'brown,sugar','cayenne','']
 
-def isFloat(string):
-    try:
-        float(string)
-        return True
-    except:
-        return False
+fishIngred = ['lemon','garlic','taco','flour','sugar','parsley','']
+
+steakIngred = ['salt','sugar','worcestershire','garlic','oil','barbecue,sauce','seasoning','onion','']
+
+porkIngred = ['salt','brown,sugar','oil','garlic','barbecue,sauce','paprika','seasoning','cayenne','']
+
+sausageIngred = ['egg','cayenne','pepper','bacon','salt','cheese','onion','']
+
+groundbeefIngred = ['taco','ketchup','potato','carrot','salt','pepper','cheese','tomato','onion','']
 
 rawKeyIngredients = []
 keyIngredients = []
 chosenCuisine = []
-for m in range(0,mealsToMake - 1): #put this whole block in getRecipe function, append to chosenCuisine
-	temp = cuisineType[random.randint(0,len(cuisineType)-1)]
-	while(temp in chosenCuisine):
-		temp = cuisineType[random.randint(0,len(cuisineType)-1)]
-	chosenCuisine.append(temp)
+cuisineType = []
 
 #--This block gets API key from PRIVATE file--#
 API_file = open(filenameOfAPI_Key,'r')
@@ -68,14 +68,14 @@ for item in range(0, len(ingred)):
 #--Put key ingredients in list to parse recipes for matches--#
 for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient, amount, chopped/canned, etc
 	temp = each.lower()		#convert to lowercase for easier matching with allIngredients.txt
-	for something in each.split():
-		if(isFloat(something)):
-			print(something)
-		if(something.find("/") > -1):
-			print(something)
-		for each in measurementUnits:
-			if (each.find(something) > -1):
-				print(each+"****\n")
+#	for something in each.split():
+#		if(isFloat(something)):
+#			print(something)
+#		if(something.find("/") > -1):
+#			print(something)
+#		for each in measurementUnits:
+#			if (each.find(something) > -1):
+#				print(each+"****\n")
 
 	f1 = open("allIngredients.txt")
 	tempWord = ""
@@ -110,6 +110,7 @@ def getRecipe(number, cuisine):
 	data2 = r2.json()
 	ranks = []
 	keptRanks1 = []
+	reList = []
 	x = 0
 	if(len(data2["hits"]) < 1):
 		return
@@ -132,17 +133,21 @@ def getRecipe(number, cuisine):
 				rank += 1
 		ranks.append((rank/len(tempIngred)) * 100)
 
-	for k in range(0,5):
+	for k in range(0,similarityThreshold):
 		try:
 			keptRanks1.append(ranks.index(max(ranks)))
 			del ranks[ranks.index(max(ranks))] #removes highest rank to get new highest next time
 		except:
 			x = 0
 
-#check here if the recipe that gets selected has alread been selected somehow
-	x = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
-	ingredi = data2["hits"][x]["recipe"]["ingredients"]
-	url = data2["hits"][x]["recipe"]["url"]
+	re = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
+	x = 0
+	while((re in reList) or (x < len(keptRanks1))):
+		re = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
+		x += 1
+	reList.append(re)
+	ingredi = data2["hits"][re]["recipe"]["ingredients"]
+	url = data2["hits"][re]["recipe"]["url"]
 
 	formatIngredients = []
 	x = 0
@@ -168,5 +173,24 @@ def getRecipe(number, cuisine):
 	#f1 = open("file.txt", "a") WILL APPEND TO THE FILE. CREATES FILE IF NOT FOUND
 	#f1 = open("file.txt", "w") WILL OVERWRITE WHATEVER IS ALREADY IN THE FILE
 
+if(mainMeat == "chicken"):
+	cuisineType = chickenIngred
+elif(mainMeat == "groundbeef"):
+	cuisineType = groundbeefIngred
+elif(mainMeat == "steak"):
+	cuisineType = steakIngred
+elif(mainMeat == "fish"):
+	cuisineType = fishIngred
+elif(mainMeat == "sausage"):
+	cuisineType = sausageIngred
+elif(mainMeat == "pork"):
+	cuisineType = porkIngred
+else:
+	cuisineType = chickenIngred
+
 for h in range(1, mealsToMake):
+	temp = cuisineType[random.randint(0,len(cuisineType)-1)]
+	while(temp in chosenCuisine):
+		temp = cuisineType[random.randint(0,len(cuisineType)-1)]
+	chosenCuisine.append(temp)
 	getRecipe(h, chosenCuisine[h-1])
