@@ -12,24 +12,18 @@ similarityThreshold = 5 #The higher the number, the less likely the recipes are 
 
 #--sets the seed for random start of 1st recipe to match--#
 start = random.randint(0,MaxAPIResults-1)
-#start = 0
 
 measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bags','quarts','pounds','cans','bottles',
 		'pints','packages','ounces','jars','heads','gallons','drops','bars','boxes','pinches',
 		'bunches','layers','links','bulbs','stalks','squares','sprigs', 'oz', 'cloves'
 		'fillets','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
 
-chickenIngred = ['alfredo','barbecue,sauce', 'cheese', 'garlic', 'mexican', 'lemon','potato','bacon','mustard','ketchup','macaroni',
+chickenIngred = ['alfredo','barbecue,sauce','cheese','garlic','mexican','potato','bacon','ketchup',
 		'brown,sugar','cayenne','']
-
 fishIngred = ['lemon','garlic','taco','flour','sugar','parsley','']
-
 steakIngred = ['salt','sugar','worcestershire','garlic','oil','barbecue,sauce','seasoning','onion','']
-
 porkIngred = ['salt','brown,sugar','oil','garlic','barbecue,sauce','paprika','seasoning','cayenne','']
-
 sausageIngred = ['egg','cayenne','pepper','bacon','salt','cheese','onion','']
-
 groundbeefIngred = ['taco','ketchup','potato','carrot','salt','pepper','cheese','tomato','onion','']
 
 rawKeyIngredients = []
@@ -56,6 +50,12 @@ ingred = data["hits"][start]["recipe"]["ingredients"]
 
 #--saves URL of recipe denoted by start--#
 url = data["hits"][start]["recipe"]["url"]
+
+#--saves name of recipe--#
+recipeName = data["hits"][start]["recipe"]["label"]
+
+#--saves serve amount--#
+recipeAmount = data["hits"][start]["recipe"]["yield"]
 
 ##---This block extracts ingredients in amounts from dictionary---##
 x = 0
@@ -91,10 +91,10 @@ for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient,
 f1.close()
 
 shopList = open("shoppingList.txt", "w")
-shopList.writelines(url+"\n")
+shopList.writelines(url+"\n"+recipeName+" (Serves : "+str(recipeAmount)+")\n")
 shopList.close()
 recipe1 = open("recipe1.txt", "w")
-recipe1.writelines(url+"\n")
+recipe1.writelines(url+"\n"+recipeName+" (Serves : "+str(recipeAmount)+")\n")
 recipe1.close()
 
 recipe1 = open("recipe1.txt", "a")
@@ -110,7 +110,7 @@ def getRecipe(number, cuisine):
 	data2 = r2.json()
 	ranks = []
 	keptRanks1 = []
-	reList = []
+	recipeRankList = []
 	x = 0
 	if(len(data2["hits"]) < 1):
 		return
@@ -140,14 +140,16 @@ def getRecipe(number, cuisine):
 		except:
 			x = 0
 
-	re = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
+	recipeRank = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
 	x = 0
-	while((re in reList) or (x < len(keptRanks1))):
-		re = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
+	while((recipeRank in recipeRankList) or (x < len(keptRanks1))):
+		recipeRank = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
 		x += 1
-	reList.append(re)
-	ingredi = data2["hits"][re]["recipe"]["ingredients"]
-	url = data2["hits"][re]["recipe"]["url"]
+	recipeRankList.append(recipeRank)
+	ingredi = data2["hits"][recipeRank]["recipe"]["ingredients"]
+	url = data2["hits"][recipeRank]["recipe"]["url"]
+	recipeName = data["hits"][recipeRank]["recipe"]["label"]
+	recipeAmount = data["hits"][recipeRank]["recipe"]["yield"]
 
 	formatIngredients = []
 	x = 0
@@ -160,8 +162,8 @@ def getRecipe(number, cuisine):
 	shopList = open("shoppingList.txt", "a")
 	recipeNumber = "recipe"+str(number+1)+".txt"
 	recipe = open(recipeNumber, "w")
-	recipe.writelines(url+"\n")
-	shopList.write("\n"+url+"\n")
+	recipe.writelines(url+"\n"+recipeName+" (Serves : "+str(recipeAmount)+")\n")
+	shopList.write("\n"+url+"\n"+recipeName+" (Serves : "+str(recipeAmount)+")\n")
 	recipe.close()
 	recipe = open(recipeNumber, "a")
 	for x in formatIngredients:
