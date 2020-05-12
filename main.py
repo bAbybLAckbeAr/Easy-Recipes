@@ -70,9 +70,6 @@ print("Please wait while system processes request..\n")
 r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
 data = r.json()
 
-#with open("this.json") as f:
-#	data = json.load(f)
-
 #--ingred is list of raw ingredients (ie 1/2 teaspoon of canola oil for recipe) to start--#
 ingred = data["hits"][start]["recipe"]["ingredients"]
 
