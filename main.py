@@ -1,13 +1,12 @@
 import requests
 import json
 import random
-import enum
 
 MaxAPIResults = 100 #Determined by subscribed tier
 filenameOfAPI_Key = "API_Key"
-mainMeat = "chicken"
+mainMeat = "chicken,breast"
 mainVeg = "broccoli"
-mealsToMake = 5
+mealsToMake = 5 #5 is maximum for DEVELOPER subscribe tier
 similarityThreshold = 5 #The higher the number, the less likely the recipes are to being similar. 2 is minimum
 spaceOffset = 30 #variable for formatting alphabetized shopping list file
 
@@ -32,6 +31,34 @@ API_file = open(filenameOfAPI_Key,'r')
 API_ID = API_file.readline()[:-1]
 API_Key = API_file.readline()[:-1]
 API_file.close()
+
+print("* Welcome to Easy Recipes *\nFirst select main meat\n\n")
+print("Type 1 for chicken breast")
+print("Type 2 for fish")
+print("Type 3 for steak")
+print("Type 4 for pork")
+print("Type 5 for sausage")
+print("Type 6 for ground beef")
+
+input1 = input()
+
+if(input1 == "1"):
+	mainMeat = "chicken,breast"
+if(input1 == "2"):
+	mainMeat = "fish"
+if(input1 == "3"):
+	mainMeat = "steak"
+if(input1 == "4"):
+	mainMeat = "pork"
+if(input1 == "5"):
+	mainMeat = "sausage"
+if(input1 == "6"):
+	mainMeat = "ground,beef"
+
+print(mainMeat+" is your selected main meat. Type in main vegetable.")
+input2 = input()
+mainVeg = input2
+print(mainVeg+" is your selected main vegetable. Please wait while system processes request..\n")
 
 #r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
 #data = r.json()
@@ -185,9 +212,9 @@ f2 = open("alphabetizeShopping.txt","w")
 f2.writelines("")
 f2.close()
 
-alphabetizedList = []
+alphabetizedList = [] # list that contains all the ingredients of all the recipes for using python built-in sort() method on later
 
-def alphebetizeShopping(alphabetized, recipe):
+def alphebetizeShopping(recipe):
 	x = 0
 	tempFile = open(recipe)
 	keyIngredients = []
@@ -216,11 +243,9 @@ def alphebetizeShopping(alphabetized, recipe):
 			x += 1
 	f1.close()
 
-alphebetizeShopping("alphabetizeShopping.txt","recipe1.txt")
-alphebetizeShopping("alphabetizeShopping.txt","recipe2.txt")
-alphebetizeShopping("alphabetizeShopping.txt","recipe3.txt")
-alphebetizeShopping("alphabetizeShopping.txt","recipe4.txt")
-alphebetizeShopping("alphabetizeShopping.txt","recipe5.txt")
+for i in range(0,mealsToMake):
+	recipe = "recipe"+str(i+1)+".txt"
+	alphebetizeShopping(recipe)
 
 alphabetizedList.sort()
 with open("alphabetizeShopping.txt", "w") as f:
@@ -228,3 +253,5 @@ with open("alphabetizeShopping.txt", "w") as f:
 with open("alphabetizeShopping.txt","a") as afile:
 	for each in alphabetizedList:
 		afile.write(each)
+
+print("\nDone!")
