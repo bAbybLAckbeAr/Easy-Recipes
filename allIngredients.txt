@@ -1,3 +1,4 @@
+carrot
 1% milk
 15 bean mixture overnight
 15 bean soup mix
@@ -1335,11 +1336,6 @@ clear imitation vanilla extract
 clear malt liquor
 clementines
 cling peaches
-clove garlic
-cloves
-cloves garlic
-cloves garlic unpeeled
-cloves garlic whole
 club soda or sparkling mineral water
 coarsely cracked black pepper
 cocktail onions
@@ -2624,6 +2620,7 @@ mulberries
 multicolored candy sprinkles
 multicolored sprinkles
 mung bean sprouts
+mushroom
 mushroom caps
 mushroom gravy
 mushroom gravy mix
@@ -2981,10 +2978,6 @@ pita breads
 pita wedges
 pitas
 pizza crust
-pizza crust dough
-pizza crust doughs
-pizza crust mix
-pizza crusts
 pizza dough
 pizza sauce
 plain bagels
@@ -3688,7 +3681,7 @@ spring water
 sprouted wheat berries
 square sandwich bread
 squid
-squirrels
+sriracha
 stale French bread
 stale French or Italian bread
 star anise pod

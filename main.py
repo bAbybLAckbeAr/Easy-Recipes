@@ -9,14 +9,10 @@ mainMeat = "chicken"
 mainVeg = "broccoli"
 mealsToMake = 5
 similarityThreshold = 5 #The higher the number, the less likely the recipes are to being similar. 2 is minimum
+spaceOffset = 30 #variable for formatting alphabetized shopping list file
 
 #--sets the seed for random start of 1st recipe to match--#
 start = random.randint(0,MaxAPIResults-1)
-
-measurementUnits = ['teaspoons','tablespoons','cups','containers','packets','bags','quarts','pounds','cans','bottles',
-		'pints','packages','ounces','jars','heads','gallons','drops','bars','boxes','pinches',
-		'bunches','layers','links','bulbs','stalks','squares','sprigs', 'oz', 'cloves'
-		'fillets','legs','thighs','cubes','granules','strips','trays','leaves','loaves','halves']
 
 chickenIngred = ['alfredo','barbecue,sauce','cheese','garlic','mexican','potato','bacon','ketchup',
 		'brown,sugar','cayenne','']
@@ -68,14 +64,6 @@ for item in range(0, len(ingred)):
 #--Put key ingredients in list to parse recipes for matches--#
 for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient, amount, chopped/canned, etc
 	temp = each.lower()		#convert to lowercase for easier matching with allIngredients.txt
-#	for something in each.split():
-#		if(isFloat(something)):
-#			print(something)
-#		if(something.find("/") > -1):
-#			print(something)
-#		for each in measurementUnits:
-#			if (each.find(something) > -1):
-#				print(each+"****\n")
 
 	f1 = open("allIngredients.txt")
 	tempWord = ""
@@ -195,4 +183,47 @@ for h in range(1, mealsToMake):
 	while(temp in chosenCuisine):
 		temp = cuisineType[random.randint(0,len(cuisineType)-1)]
 	chosenCuisine.append(temp)
-	getRecipe(h, chosenCuisine[h-1])
+#	getRecipe(h, chosenCuisine[h-1])
+f2 = open("alphabetizeShopping.txt","w")
+f2.writelines("")
+f2.close()
+
+def alphebetizeShopping(alphabetized, recipe):
+	x = 0
+	tempFile = open(recipe)
+	keyIngredients = []
+	file = open(alphabetized,"a")
+	for line in tempFile:
+		if(x>=2):
+			temp = line.lower()		#convert to lowercase for easier matching with allIngredients.txt
+			f1 = open("allIngredients.txt")
+			tempWord = ""
+			for line in f1:		#Go through each line of allIngredients.txt
+				if (temp.find(line[:-1].lower()) > -1):		#if any string from temp is found in allIngredients.txt - newline character
+					if (len(line[:-1].lower()) > len(tempWord)):		#update longest word. Ideally, the longest match is the most specific ingredient
+						tempWord = line[:-1].lower()
+			if(len(tempWord) == 0):		#If ingredient is not found in known ingredients in allIngredients.txt file
+				print("***************" + temp + " -> Not found in allIngredients.txt. Please add.***************")
+				tempWord = temp
+			if(not any(item in tempWord for item in keyIngredients)):	#If ingredient not repeated in the recipe's list, add to list of recipes to match for ranking
+				spaces = spaceOffset - len(tempWord)
+				if(len(tempWord) >= spaceOffset):
+					keyIngredients.append(tempWord+": "+temp)
+				else:
+					tempWord += (":"+(" "*spaces))
+					keyIngredients.append(tempWord+temp)
+				file.write(keyIngredients[x - 2])
+				x += 1
+		else:
+			x += 1
+	f1.close()
+	file.close()
+
+alphebetizeShopping("alphabetizeShopping.txt","recipe1.txt")
+alphebetizeShopping("alphabetizeShopping.txt","recipe2.txt")
+alphebetizeShopping("alphabetizeShopping.txt","recipe3.txt")
+alphebetizeShopping("alphabetizeShopping.txt","recipe4.txt")
+alphebetizeShopping("alphabetizeShopping.txt","recipe5.txt")
+
+
+f2.close()
