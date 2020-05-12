@@ -13,6 +13,7 @@ spaceOffset = 30 #variable for formatting alphabetized shopping list file
 #--sets the seed for random start of 1st recipe to match--#
 start = random.randint(0,MaxAPIResults-1)
 
+#These lists are ingredients I like to use when cooking with the indicated main meat
 chickenIngred = ['alfredo','barbecue,sauce','cheese','garlic','mexican','potato','bacon','ketchup',
 		'brown,sugar','cayenne','']
 fishIngred = ['lemon','garlic','taco','flour','sugar','parsley','']
@@ -21,10 +22,11 @@ porkIngred = ['salt','brown,sugar','oil','garlic','barbecue,sauce','paprika','se
 sausageIngred = ['egg','cayenne','pepper','bacon','salt','cheese','onion','']
 groundbeefIngred = ['taco','ketchup','potato','carrot','salt','pepper','cheese','tomato','onion','']
 
-rawKeyIngredients = []
-keyIngredients = []
-chosenCuisine = []
-cuisineType = []
+rawKeyIngredients = [] # list that will contain the raw ingredients (amount, type, etc) of first returned recipe
+keyIngredients = [] # list that will contain the key ingredient names extracted from allIngredients.txt file
+cuisineType = [] # list that will hold ingredients I cook with main meat. One of the Ingred lists above
+chosenCuisine = [] # list that will contain randomly chosen items from cuisineType list
+alphabetizedList = [] # list that contains all the ingredients of all the recipes for using python built-in sort() method on later
 
 #--This block gets API key from PRIVATE file--#
 API_file = open(filenameOfAPI_Key,'r')
@@ -64,11 +66,10 @@ mealsToMake = input3
 
 print("Please wait while system processes request..\n")
 
+#API request
 r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
 data = r.json()
 
-##--use this til final run--##
-#data contains all recipes returned
 #with open("this.json") as f:
 #	data = json.load(f)
 
@@ -133,7 +134,6 @@ def getRecipe(number, cuisine):
 
 	ranks = [] # list that holds the ranks of all recipes returned from API request
 	keptRanks1 = [] # list that holds the ranks of highest ranked recipes to randomly choose from for final recipe write
-	recipeRankList = [] # basically same list as keptRanks1 but useful for if API has not enough matching recipes
 	x = 0
 	if(len(data2["hits"]) < 1): # if API returned no results because of misspelled ingredient or bad combination
 		return
@@ -169,11 +169,8 @@ def getRecipe(number, cuisine):
 
 	recipeRank = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
 	x = 0
-	#This while loop makes sure there is enough matching recipes
-	while((recipeRank in recipeRankList) or (x < len(keptRanks1))): #PUT RECIPERANKLIST OUTSIDE OF FUNCTION AND USE URL AS KEY
-		recipeRank = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
-		x += 1
-	recipeRankList.append(recipeRank)
+
+	# this block extracts information from randomly chosen matched recipe
 	ingredi = data2["hits"][recipeRank]["recipe"]["ingredients"]
 	url = data2["hits"][recipeRank]["recipe"]["url"]
 	recipeName = data["hits"][recipeRank]["recipe"]["label"]
@@ -181,12 +178,16 @@ def getRecipe(number, cuisine):
 
 	formatIngredients = []
 	x = 0
+
+	#this block is hard-coded to how the API returns information. similar block to above
 	for item in range(0, len(ingredi)):
 		for key,value in ingredi[item].items():
 			if(x % 2 == 0):
 				if(not any(item in value.lower() for item in formatIngredients)):
 					formatIngredients.append(value.lower())
 			x+=1
+
+	#This block creates and writes important information to respective files
 	shopList = open("shoppingList.txt", "a")
 	recipeNumber = "recipe"+str(number+1)+".txt"
 	recipe = open(recipeNumber, "w")
@@ -200,6 +201,8 @@ def getRecipe(number, cuisine):
 	recipe.close()
 	shopList.close()
 
+#This if elif block determines what ingredients to use as "varying styles" of food (ie cuisineType)
+#API does not support cuisineType in Python. Just Javascript
 if(mainMeat == "chicken"):
 	cuisineType = chickenIngred
 elif(mainMeat == "groundbeef"):
@@ -215,24 +218,28 @@ elif(mainMeat == "pork"):
 else:
 	cuisineType = chickenIngred
 
+#This block is where getRecipe is called enough times to get desired recipe amount.
+#while loop is to ensure the same ingredient to differentiate cuisineType is chosen twice in each run of the program
 for h in range(1, mealsToMake):
 	temp = cuisineType[random.randint(0,len(cuisineType)-1)]
 	while(temp in chosenCuisine):
 		temp = cuisineType[random.randint(0,len(cuisineType)-1)]
 	chosenCuisine.append(temp)
-#	getRecipe(h, chosenCuisine[h-1])
+	getRecipe(h, chosenCuisine[h-1])
+
+
 f2 = open("alphabetizeShopping.txt","w")
 f2.writelines("")
 f2.close()
 
-alphabetizedList = [] # list that contains all the ingredients of all the recipes for using python built-in sort() method on later
-
+#Go through each ingredient of recipe file and extract main ingredient from file and alphabetize according to main ingredient.
+#More than one way to accomplish this. This way to make shopping list easier to read
 def alphebetizeShopping(recipe):
 	x = 0
 	tempFile = open(recipe)
 	keyIngredients = []
 	for line in tempFile:
-		if(x>=2):
+		if(x>=2): #first two lines are url and recipe name
 			temp = line.lower()		#convert to lowercase for easier matching with allIngredients.txt
 			f1 = open("allIngredients.txt")
 			tempWord = ""
@@ -245,22 +252,26 @@ def alphebetizeShopping(recipe):
 				tempWord = temp
 			if(not any(item in tempWord for item in keyIngredients)):	#If ingredient not repeated in the recipe's list, add to list of recipes to match for ranking
 				spaces = spaceOffset - len(tempWord)
+				#If/else for formatting space convenience
 				if(len(tempWord) >= spaceOffset):
 					keyIngredients.append(tempWord+": "+temp)
 				else:
 					tempWord += (":"+(" "*spaces))
-					keyIngredients.append(tempWord+temp)
-					alphabetizedList.append(tempWord+temp)
-				x += 1
+					keyIngredients.append(tempWord+temp) #main ingredient is in the front of each line with amount after formatted amound of spaces
+					alphabetizedList.append(tempWord+temp) # add item to master list
 		else:
 			x += 1
 	f1.close()
 
+#calls alphabetizeShopping function to alphabetize items from each recipe file and add to alphabetizedList master list
 for i in range(0,mealsToMake):
 	recipe = "recipe"+str(i+1)+".txt"
 	alphebetizeShopping(recipe)
 
+#sort master list alphabetically
 alphabetizedList.sort()
+
+#overwrite/create alphabetized file and write new alphabetized master list to file
 with open("alphabetizeShopping.txt", "w") as f:
 	f.writelines("")
 with open("alphabetizeShopping.txt","a") as afile:
