@@ -159,9 +159,6 @@ def getRecipe(number, cuisine):
 		recipe.write(x+"\n")
 	recipe.close()
 	shopList.close()
-	#formatIngredients has list of formatted ingredients for the randomly chosen recipe that has a high rank
-	#f1 = open("file.txt", "a") WILL APPEND TO THE FILE. CREATES FILE IF NOT FOUND
-	#f1 = open("file.txt", "w") WILL OVERWRITE WHATEVER IS ALREADY IN THE FILE
 
 if(mainMeat == "chicken"):
 	cuisineType = chickenIngred
@@ -188,11 +185,12 @@ f2 = open("alphabetizeShopping.txt","w")
 f2.writelines("")
 f2.close()
 
+alphabetizedList = []
+
 def alphebetizeShopping(alphabetized, recipe):
 	x = 0
 	tempFile = open(recipe)
 	keyIngredients = []
-	file = open(alphabetized,"a")
 	for line in tempFile:
 		if(x>=2):
 			temp = line.lower()		#convert to lowercase for easier matching with allIngredients.txt
@@ -212,12 +210,11 @@ def alphebetizeShopping(alphabetized, recipe):
 				else:
 					tempWord += (":"+(" "*spaces))
 					keyIngredients.append(tempWord+temp)
-				file.write(keyIngredients[x - 2])
+					alphabetizedList.append(tempWord+temp)
 				x += 1
 		else:
 			x += 1
 	f1.close()
-	file.close()
 
 alphebetizeShopping("alphabetizeShopping.txt","recipe1.txt")
 alphebetizeShopping("alphabetizeShopping.txt","recipe2.txt")
@@ -225,5 +222,9 @@ alphebetizeShopping("alphabetizeShopping.txt","recipe3.txt")
 alphebetizeShopping("alphabetizeShopping.txt","recipe4.txt")
 alphebetizeShopping("alphabetizeShopping.txt","recipe5.txt")
 
-
-f2.close()
+alphabetizedList.sort()
+with open("alphabetizeShopping.txt", "w") as f:
+	f.writelines("")
+with open("alphabetizeShopping.txt","a") as afile:
+	for each in alphabetizedList:
+		afile.write(each)
