@@ -133,7 +133,7 @@ def getRecipe(number, cuisine):
 	data2 = r2.json()
 
 	ranks = [] # list that holds the ranks of all recipes returned from API request
-	keptRanks1 = [] # list that holds the ranks of highest ranked recipes to randomly choose from for final recipe write
+	keptRanks1 = [] # list that holds the dictionary list indexes of the ranks of highest ranked recipes to randomly choose from for final recipe write
 	x = 0
 	if(len(data2["hits"]) < 1): # if API returned no results because of misspelled ingredient or bad combination
 		return
@@ -152,7 +152,7 @@ def getRecipe(number, cuisine):
 		for each in tempIngred:		#for each dictionary of extracted recipe ingredient list
 			match = False
 			for item in keyIngredients:
-				if (each.find(item) > -1):
+				if (each.find(item) > -1): #if each ingredient has a match with the key ingredients returned from the first recipe
 					match = True
 			if(match):
 				rank += 1
