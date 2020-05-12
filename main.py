@@ -39,7 +39,6 @@ print("Type 3 for steak")
 print("Type 4 for pork")
 print("Type 5 for sausage")
 print("Type 6 for ground beef")
-
 input1 = input()
 
 if(input1 == "1"):
@@ -58,18 +57,20 @@ if(input1 == "6"):
 print(mainMeat+" is your selected main meat. Type in main vegetable.")
 input2 = input()
 mainVeg = input2
+
 print(mainVeg+" is your selected main vegetable. Type in numeric value for number of recipes wanted. "+str(mealsToMake)+" is maximum.")
 input3 = int(input())
 mealsToMake = input3
+
 print("Please wait while system processes request..\n")
 
-#r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
-#data = r.json()
+r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
+data = r.json()
 
 ##--use this til final run--##
 #data contains all recipes returned
-with open("this.json") as f:
-	data = json.load(f)
+#with open("this.json") as f:
+#	data = json.load(f)
 
 #--ingred is list of raw ingredients (ie 1/2 teaspoon of canola oil for recipe) to start--#
 ingred = data["hits"][start]["recipe"]["ingredients"]
@@ -108,13 +109,14 @@ for each in rawKeyIngredients:		#rawKeyingredients is entire text of ingredient,
 		keyIngredients.append(tempWord)
 f1.close()
 
-shopList = open("shoppingList.txt", "w")
+shopList = open("shoppingList.txt", "w") #If file exists, clear it first. If file doesn't exist, this creates it
 shopList.writelines(url+"\n"+recipeName+" (Serves : "+str(recipeAmount)+")\n")
 shopList.close()
 recipe1 = open("recipe1.txt", "w")
 recipe1.writelines(url+"\n"+recipeName+" (Serves : "+str(recipeAmount)+")\n")
 recipe1.close()
 
+#add ingredients from the first recipe to shoppingList file and it's own recipe file
 recipe1 = open("recipe1.txt", "a")
 shopList = open("shoppingList.txt", "a")
 for x in rawKeyIngredients:
@@ -123,20 +125,25 @@ for x in rawKeyIngredients:
 shopList.close()
 recipe1.close()
 
+#Creates a file for a new recipe and adds to current shopping list
+#Number is for file name purposes and cuisine represents ingredients that I use when cooking with the main meat
 def getRecipe(number, cuisine):
 	r2 = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+','+cuisine+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
 	data2 = r2.json()
-	ranks = []
-	keptRanks1 = []
-	recipeRankList = []
+
+	ranks = [] # list that holds the ranks of all recipes returned from API request
+	keptRanks1 = [] # list that holds the ranks of highest ranked recipes to randomly choose from for final recipe write
+	recipeRankList = [] # basically same list as keptRanks1 but useful for if API has not enough matching recipes
 	x = 0
-	if(len(data2["hits"]) < 1):
+	if(len(data2["hits"]) < 1): # if API returned no results because of misspelled ingredient or bad combination
 		return
-	for y in range(0, len(data2["hits"]) - 1): #MaxAPIResults):		#for each recipe in returned results from API search
-		tempIngred = []
+	for y in range(0, len(data2["hits"]) - 1): #for each recipe in returned results from API search
+		tempIngred = [] # list that holds ingredients extracted from dictionary returned from API
 		ingredi = data2["hits"][y]["recipe"]["ingredients"]		#temp dictionary for extracting recipe ingredients
+
+		#this block of code is hard-coded to how API returns information
 		for item in range(0, len(ingredi)):
-			for key,value in ingredi[item].items():
+			for key,value in ingredi[item].items(): # value contains ingredient information (amount, type, etc)
 				if(x % 2 == 0):
 					tempIngred.append(value.lower())
 				x+=1
@@ -149,18 +156,21 @@ def getRecipe(number, cuisine):
 					match = True
 			if(match):
 				rank += 1
+		#rank for each recipe returned from API is returned as a percentage of matched ingredients to the first recipe
 		ranks.append((rank/len(tempIngred)) * 100)
 
+	#Similarity threshold determines the number of recipes that are considered "similar"
 	for k in range(0,similarityThreshold):
 		try:
 			keptRanks1.append(ranks.index(max(ranks)))
 			del ranks[ranks.index(max(ranks))] #removes highest rank to get new highest next time
 		except:
-			x = 0
+			x = 0 # do nothing. just catching the exception here
 
 	recipeRank = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
 	x = 0
-	while((recipeRank in recipeRankList) or (x < len(keptRanks1))):
+	#This while loop makes sure there is enough matching recipes
+	while((recipeRank in recipeRankList) or (x < len(keptRanks1))): #PUT RECIPERANKLIST OUTSIDE OF FUNCTION AND USE URL AS KEY
 		recipeRank = keptRanks1[random.randint(0,len(keptRanks1) - 1)]
 		x += 1
 	recipeRankList.append(recipeRank)
