@@ -58,7 +58,10 @@ if(input1 == "6"):
 print(mainMeat+" is your selected main meat. Type in main vegetable.")
 input2 = input()
 mainVeg = input2
-print(mainVeg+" is your selected main vegetable. Please wait while system processes request..\n")
+print(mainVeg+" is your selected main vegetable. Type in numeric value for number of recipes wanted. "+str(mealsToMake)+" is maximum.")
+input3 = int(input())
+mealsToMake = input3
+print("Please wait while system processes request..\n")
 
 #r = requests.get('https://api.edamam.com/search?q='+mainVeg+','+mainMeat+'&app_id='+API_ID+'&app_key='+API_Key+'&from=0&to='+str(MaxAPIResults))
 #data = r.json()
