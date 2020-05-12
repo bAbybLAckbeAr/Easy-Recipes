@@ -1,3 +1,4 @@
+#Sam Wendt	CPEG457 Search and Data Mining
 import requests
 import json
 import random
